@@ -4,10 +4,12 @@ import VisitorCount from '../Components/VisitorCount'
 import { useState, useEffect } from 'react';
 import BarChart from '../Components/BarChart';
 import LineChart from '../Components/LineChart';
+import { useNavigate } from 'react-router-dom';
 
 
 
 export default function DashBoard() {
+    const navigate = useNavigate();
     const months = ['Jan','Feb','Mar','Apr','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);  // This holds the month index
     const [totalVisitorCount, setTotalVisitorCount] = useState(null)
@@ -40,6 +42,13 @@ export default function DashBoard() {
     const handleSelect = (index) => {
         setSelectedMonthIndex(index); // Only set the month index
     };
+
+    const handleClickView = () => {
+        navigate('/data-display');
+    }
+    const handleBackClickView = () => {
+        navigate('/');
+    }
   return (
     <div className='bg-gray-300 pt-4 px-2 h-screen'>
         <div className='grid grid-cols-8 w-full bg-white rounded-lg p-2.5 mb-2'>
@@ -47,8 +56,9 @@ export default function DashBoard() {
             <h1 className='font-black text-xl'>Demand Prediction Dashboard</h1>
             <p className='font-bold text-md text-gray-300'>Monthly Forecast</p>
             </div>
-            <div className='pl-24 pt-2'>
-            <button className='text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center'>Back</button>
+            <div className='pt-2 flex'>
+            <button onClick={handleClickView} className='text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center mr-2'>View</button>
+            <button onClick={handleBackClickView} className='text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center'>Back</button>
             </div>
 
         </div>

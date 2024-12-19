@@ -1,27 +1,23 @@
-import './App.css'
-import InputField from './Components/InputField'
-import MainButton from './Components/MainButton'
-import Regitration from './Pages/Regitration'
-import DataDisplay from './Pages/DataDisplay'
-import MonthSelectionNavbar from './Components/MonthSelectionNavbar'
-import VisitorCount from './Components/VisitorCount'
-import PieChart from './Components/PieChartGraph'
-import DashBoard from './Pages/DashBoard'
-function App() {
-  
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DashBoard from './Pages/DashBoard';
+import LogInPage from './Pages/LogInPage';
+import DataDisplay from './Pages/DataDisplay';
+import Regitration from './Pages/Regitration';
+import SignInPage from './Pages/SignInPage';
 
-  return (
-    <>
-     {/* <MainButton /> */}
-     {/* <InputField /> */}
-     {/* <Regitration /> */}
-     {/* <DataDisplay /> */}
-     {/* <MonthSelectionNavbar /> */}
-     {/* <VisitorCount /> */}
-      {/* <PieChart /> */}
-      <DashBoard />
-    </>
-  )
+function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<LogInPage />} />
+                <Route path="/registration" element={<Regitration />} />
+                <Route path='/dashboard' element={<DashBoard />} />
+                <Route path="/data-display" element={<DataDisplay />} />
+                <Route path="/sign-up" element={<SignInPage />} />
+            </Routes>
+        </Router>
+    );
 }
 
-export default App
+export default App;

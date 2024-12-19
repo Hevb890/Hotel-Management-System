@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
 import cancellation_prediction
 import daily_rate_prediction
 import forecasting_total_visitors
@@ -9,6 +10,8 @@ import forecasting_total_visitors
 
 app = Flask(__name__)
 CORS(app)
+bcrypt = Bcrypt(app)
+
 
 # Escape special characters in username and password
 username = quote_plus("hevindu")
@@ -18,9 +21,13 @@ password = quote_plus("User@123")
 client = MongoClient(
     f"mongodb+srv://{username}:{password}@cluster0.tf5jm.mongodb.net/?retryWrites=true&w=majority", tlsAllowInvalidCertificates=True
 )
-dbUsers = client['Users']
-collectionUserRegistration = dbUsers['UserDetails']
+dbUsers = client['Users']  # Database for reservations
+collectionUserRegistration = dbUsers['UserDetails']  # Collection
 
+dbUserCredentials = client['User_Credential_DB']  # Database for Credentials
+collectionUserCredentials = dbUserCredentials['User_Credentials']  # Collection
+
+is_admin = False
 # Test function for get the connection ready
 
 
@@ -90,6 +97,66 @@ def get_total_number_of_expected_visitors():
 def get_info_for_line_chart():
     list_visitors = forecasting_total_visitors.get_forecast_for_all_months()
     return jsonify({"visitor_array": list_visitors})
+
+
+@app.route('/register', methods=['POST'])
+def register_new_login_user():
+    try:
+        data_credentials = request.get_json()
+        print(data_credentials)
+        password = data_credentials['pass_word']
+        hashed_password = bcrypt.generate_password_hash(
+            password).decode('utf-8')
+        data_credentials['pass_word'] = hashed_password
+        print(data_credentials)
+        collectionUserCredentials.insert_one(data_credentials)
+        if '_id' in data_credentials:
+            data_credentials['_id'] = str(data_credentials['_id'])
+
+    # Return a success message
+        return jsonify({"message": "Sign In received", "data": data_credentials}), 200
+    except Exception as e:
+        return jsonify({"message": "Error storing credentials", "error": str(e)}), 500
+
+
+@app.route('/login', methods=['POST'])
+def handle_login():
+    try:
+        # Parse incoming JSON data
+        login_credentials = request.get_json()
+        username = login_credentials['user_name']
+        password = login_credentials['pass_word']
+
+        # Retrieve user credentials from the database
+        found_user_credentials = collectionUserCredentials.find_one(
+            {'user_name': username})
+
+        if not found_user_credentials:
+            # User not found
+            return jsonify({"error": "Invalid username or password"}), 401
+
+        # Compare the provided password with the stored hashed password
+        stored_hashed_password = found_user_credentials['pass_word']
+        if bcrypt.check_password_hash(stored_hashed_password, password):
+            global is_admin
+            is_admin = found_user_credentials['is_admin']
+            print(is_admin)
+            # Successful login
+            # You can return additional user data or a token here
+            return jsonify({"message": "Login successful", "user_name": username, "is_admin": is_admin}), 200
+        else:
+            # Incorrect password
+            return jsonify({"error": "Invalid username or password"}), 401
+
+    except Exception as e:
+        # Handle unexpected errors
+        return jsonify({"error": "An error occurred", "details": str(e)}), 500
+
+
+@app.route('/is_admin', methods=['GET'])
+def get_admin_status():
+    print(is_admin)
+    return jsonify({"is_admin": is_admin})
 
 
 if __name__ == '__main__':
